@@ -7,7 +7,7 @@ import sys
 
 def auto_update():
     print("🔄 Проверка обновлений...")
-    repo_url = "https://raw.githubusercontent.com/USERNAME/REPO/main/system_optimizer.py"  # Замени на свой URL
+    repo_url = "https://raw.githubusercontent.com/sasha14567890-23457878778787778787878/nika_helper/refs/heads/main/app.py"  # Замени на свой URL
     try:
         response = requests.get(repo_url)
         if response.status_code == 200:
@@ -32,12 +32,19 @@ def clear_temp():
     folders = [os.getenv('TEMP'), os.getenv('TMP'), 'C:\\Windows\\Temp']
     for folder in folders:
         try:
-            for filename in os.listdir(folder):
-                file_path = os.path.join(folder, filename)
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    os.unlink(file_path)
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
+            for root, dirs, files in os.walk(folder):
+                for name in files:
+                    file_path = os.path.join(root, name)
+                    try:
+                        os.unlink(file_path)
+                    except PermissionError:
+                        print(f"⚠️ Пропущен занятой файл: {file_path}")
+                for name in dirs:
+                    dir_path = os.path.join(root, name)
+                    try:
+                        shutil.rmtree(dir_path)
+                    except PermissionError:
+                        print(f"⚠️ Пропущена занятая папка: {dir_path}")
             print(f"✔️ Очищено: {folder}")
         except Exception as e:
             print(f"❌ Ошибка очистки {folder}: {e}")
@@ -46,7 +53,10 @@ def clear_ram():
     print("🔥 Очистка RAM...")
     try:
         os.system('echo Clearing RAM...')
-        os.system('powershell.exe Clear-RecycleBin -Force')  # Очистка корзины
+        # Проверка перед очисткой корзины
+        recycle_bin = subprocess.check_output('powershell.exe Get-ChildItem C:\\$Recycle.Bin', shell=True)
+        if recycle_bin:
+            os.system('powershell.exe Clear-RecycleBin -Force')  # Очистка корзины, если она не пуста
         print("✔️ RAM очищена!")
     except Exception as e:
         print(f"❌ Ошибка очистки RAM: {e}")
@@ -59,7 +69,10 @@ def monitor():
 
 def manage_autorun():
     print("⚙️ Автозапуск программ...")
-    os.system('shell:startup')  # Открывает папку автозапуска
+    try:
+        subprocess.run(['powershell', 'explorer.exe', 'shell:startup'], check=True)
+    except Exception as e:
+        print(f"❌ Ошибка открытия автозапуска: {e}")
 
 def main():
     auto_update()  # Автоматическое обновление при запуске
