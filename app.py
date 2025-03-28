@@ -3,6 +3,7 @@ import psutil
 import shutil
 import subprocess
 import requests
+import sys
 
 def auto_update():
     print("🔄 Проверка обновлений...")
